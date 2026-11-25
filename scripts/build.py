@@ -17,6 +17,19 @@ def p(text):
 def link(label, url, cls=''):
     return f'<a class="{cls}" href="{e(url, quote=True)}" target="_blank" rel="noopener noreferrer">{e(label)}<span class="sr-only">（另開分頁）</span></a>'
 
+def maps(query, label='Google Maps', context=''):
+    """Link to a named-place search, without claiming a verified address."""
+    url='https://www.google.com/maps/search/?api=1&query='+quote(query)
+    return f'<a class="map-link" href="{e(url,quote=True)}" target="_blank" rel="noopener noreferrer">{e(label)}<span class="sr-only">：{e(context or query)}（另開分頁）</span></a>'
+
+STAY_AREAS={6:'Sultanahmet Istanbul',7:'Sultanahmet Istanbul',8:'Sultanahmet Istanbul',11:'Safranbolu old town',12:'Safranbolu',14:'Goreme',16:'Goreme',17:'Goreme',19:'Kahta',21:'Kahta',24:'Kaleici Antalya',26:'Kas Antalya',27:'Kas Antalya',28:'Oludeniz Fethiye',31:'Pamukkale village',32:'Selcuk',34:'Karakoy Galata Istanbul'}
+CITY_QUERIES={'伊斯坦堡':'Istanbul','番紅花城':'Safranbolu','安卡拉':'Ankara','格雷梅':'Goreme','Kayseri':'Kayseri','Kahta':'Kahta','Adıyaman':'Adiyaman','安塔利亞':'Antalya','卡什':'Kas Antalya','費特希耶':'Fethiye','Ölüdeniz':'Oludeniz','代尼茲利':'Denizli','棉堡':'Pamukkale','塞爾丘克':'Selcuk','伊茲密爾機場':'Izmir Adnan Menderes Airport','伊茲密爾':'Izmir','希林傑':'Sirince'}
+
+def place_query(text):
+    for name in sorted(CITY_QUERIES,key=len,reverse=True):
+        if name in text:return CITY_QUERIES[name]+' Turkey'
+    return text+' Turkey'
+
 def picture(n, alt, eager=False):
     return f'<picture><source srcset="assets/slides/{n:02d}-640.webp 640w, assets/slides/{n:02d}-1000.webp 1000w, assets/slides/{n:02d}.webp 2000w" sizes="(max-width: 900px) 100vw, 800px" type="image/webp"><img src="assets/slides/{n:02d}.webp" width="2000" height="1125" alt="{e(alt,quote=True)}" loading="{"eager" if eager else "lazy"}" decoding="async" {"fetchpriority=high" if eager else ""}></picture>'
 
@@ -40,10 +53,10 @@ def day_content(s):
         if not sights[i].startswith('關於'):
             source=next((l for l in s['links'] if l['text']==sights[i]),None)
             query=parse_qs(urlparse(source['url']).query).get('q',[sights[i]+' '+region])[0] if source else sights[i]+' '+region
-            body+=f'<a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query={quote(query+" Turkey")}" target="_blank" rel="noopener noreferrer">在地圖搜尋<span class="sr-only">{e(sights[i])}（另開分頁）</span></a>'
+            body+=f'<a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query={quote(query+" Turkey")}" target="_blank" rel="noopener noreferrer">Google Maps<span class="sr-only">{e(sights[i])}（另開分頁）</span></a>'
         if i+1<len(sights):body+=p(sights[i+1])
         body+='</section>'
-    body+=f'</section><div class="stay"><h3>今晚住宿</h3>{p(items[stay+1])}</div>'
+    body+=f'</section><div class="stay"><h3>今晚住宿</h3>{p(items[stay+1])}'+(maps(STAY_AREAS[s['number']]+' Turkey','住宿區域 Google Maps',items[stay+1]) if s['number'] in STAY_AREAS else '')+'</div>'
     return region,body+references(s)
 
 def rows(data, width):
@@ -55,7 +68,7 @@ def content(s):
     if n==2:
         body=p(a[1])+'<div class="stats"><span><strong>18</strong>晚住宿</span><span><strong>11</strong>段交通</span><span><strong>3</strong>次熱氣球機會</span></div><ol class="route-list">'
         for number,route,time in rows(a[11:],3):body+=f'<li><div>{e(route)}</div><span>{e(time)}</span></li>'
-        return body+'</ol>'
+        return body+'</ol><div class="city-maps"><h3>沿途城市 Google Maps</h3>'+''.join(maps(place_query(city),city) for city in ['伊斯坦堡','番紅花城','安卡拉','格雷梅','Kahta','安塔利亞','卡什','費特希耶','Ölüdeniz','棉堡','塞爾丘克','希林傑'])+'</div>'
     if n==4:
         data=[t for t in a[1:] if t not in ['Day','日期','行程','住宿']]
         body='<ol class="overview">'
@@ -65,12 +78,18 @@ def content(s):
     if n in [9,13,18,22,29,35]:
         body='<div class="food-list">'
         for title,description,place in rows(a[3:-1],3):
-            body+=f'<section><h3>{e(title)}</h3>{p(description)}'+(f'<p class="place">地點 · {e(place)}</p>' if place!='—' else '')+'</section>'
+            body+=f'<section><h3>{e(title)}</h3>{p(description)}'+(f'<p class="place">地點 · {e(place)}</p>' if place!='—' else '')
+            if title not in ['必吃美食','必吃甜點','小提醒','旅館餐廳']:
+                city={9:'Istanbul',13:'Safranbolu',18:'Uchisar Cappadocia' if '烏奇沙' in place else 'Goreme Cappadocia',22:'Kahta',29:'Antalya' if '安塔利亞' in place else 'Kas Antalya',35:place_query(place)}[n]
+                body+=maps(title+' '+city+('' if 'Turkey' in city else ' Turkey'),'餐廳 Google Maps',title)
+            body+='</section>'
         return body+'</div>'
     if n==38:
         body='<p class="note">原稿班次以 2026 年資料為主。</p><div class="transport-list">'
         for number,route,mode,time,schedule in rows(a[6:-1],5):
-            body+=f'<section><h3>{e(route)}</h3><p class="transport-meta">{e(mode)} · {e(time)}</p>{p(schedule)}</section>'
+            body+=f'<section><h3>{e(route)}</h3><p class="transport-meta">{e(mode)} · {e(time)}</p>{p(schedule)}'
+            points=route.split(' → ')
+            body+='<div class="transport-maps">'+maps(place_query(points[0]),'出發地 Google Maps',points[0])+maps(place_query(points[-1]),'目的地 Google Maps',points[-1])+'</div></section>'
         return body+'</div>'+p(a[-1])
     if n==39:
         body='<div class="prep-list">'
@@ -101,17 +120,17 @@ for s in slides:
     if is_day:
         index=days.index(s)
         food=9 if n<=8 else 13 if n<=14 else 18 if n<=19 else 22 if n<=21 else 29 if n<=28 else 35 if n<=34 else 9
-        tools=f'<div class="day-shortcuts"><a href="#transport-{n}">交通</a><a href="#slide-{food}">當地美食</a><a href="#slide-4">行程總覽</a></div><div class="day-actions js-only"><button class="save-day" data-id="slide-{n}" aria-pressed="false">收藏這一天</button><button class="share-day" data-id="slide-{n}">複製當日連結</button></div>'
+        tools=f'<div class="day-shortcuts">{maps("Taipei Taiwan" if n==37 else STAY_AREAS.get(n,"Istanbul")+" Turkey","Google Maps","當日目的地")}<a href="#transport-{n}">交通</a><a href="#slide-{food}">當地美食</a><a href="#slide-4">行程總覽</a></div><div class="day-actions js-only"><button class="save-day" data-id="slide-{n}" aria-pressed="false">收藏這一天</button><button class="share-day" data-id="slide-{n}">複製當日連結</button></div>'
         previous=f'<a rel="prev" href="#slide-{days[index-1]["number"]}">前一天 · DAY {index:02d}</a>' if index else '<a href="#slide-4">行程總覽</a>'
         following=f'<a rel="next" href="#slide-{days[index+1]["number"]}">下一天 · DAY {index+2:02d}</a>' if index<len(days)-1 else '<a href="#slide-39">行前準備</a>'
         body+=f'<nav class="day-pagination" aria-label="第 {index+1} 天前後行程">{previous}{following}</nav>'
-    sections.append(f'<article {attrs}><div class="slide-heading">{head}<a class="permalink" href="#slide-{n}" aria-label="第 {n} 頁連結">原稿 {n:02d} / 40</a></div>{tools}{body}{"" if cover else original(s)}</article>')
+    sections.append(f'<article {attrs}><div class="slide-heading">{head}</div>{tools}{body}{"" if cover else original(s)}</article>')
 
 nav=[(1,'旅程封面'),(4,'19 天行程總覽'),(5,'伊斯坦堡'),(10,'番紅花城'),(15,'卡帕多奇亞'),(20,'內姆魯特山'),(23,'地中海海岸'),(30,'棉堡與以弗所'),(36,'回到伊斯坦堡'),(38,'交通總表'),(39,'行前準備'),(40,'資料來源')]
 options='<optgroup label="旅程與總覽">'+''.join(f'<option value="slide-{x["number"]}">{e(x["title"])}</option>' for x in slides[:4])+'</optgroup>'
 options+='<optgroup label="每日行程">'+''.join(f'<option value="slide-{x["number"]}">{e(x["title"])}</option>' for x in days)+'</optgroup>'
 options+='<optgroup label="城市・美食・行前資料">'+''.join(f'<option value="slide-{x["number"]}">{e(x["title"])}</option>' for x in slides[4:] if x not in days)+'</optgroup>'
-html='''<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fffdf8"><meta name="description" content="2027 土耳其 19 天自由行，手機也能輕鬆閱讀的每日行程、交通、住宿與美食手帖。"><meta property="og:title" content="土耳其環線 · 2027 旅行手帖"><meta property="og:description" content="19 天自由行：每日交通、景點、住宿與美食"><meta property="og:type" content="website"><meta property="og:image" content="https://nibbles724bot.github.io/TravelTurkey2027/assets/slides/01-1000.webp"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><title>土耳其環線 · 2027 旅行手帖</title><link rel="stylesheet" href="style.css"><script>document.documentElement.classList.add("js")</script><script src="app.js" defer></script></head><body><a class="skip" href="#journey">跳至行程</a><div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div><header><a class="brand" href="#slide-1">TÜRKİYE <span>2027 旅行手帖</span></a><a class="source" href="https://docs.google.com/presentation/d/1R3rRgthyyVZKir0g0Ztm9C8AtsBktX26/edit" target="_blank" rel="noopener noreferrer">原始簡報</a></header><div class="mobile-toolbar js-only"><label class="sr-only" for="jump">跳至日期或章節</label><select id="jump">'''+options+'''</select><button id="search-toggle" aria-expanded="false" aria-controls="guide-nav">搜尋</button></div><div class="layout"><aside id="guide-nav" aria-label="行程導覽"><div class="sidebar-title"><p class="eyebrow">2027 · 旅行手帖</p><p class="sidebar-heading">19 天，<br>繞一圈土耳其。</p></div><div class="search-tools js-only"><button id="saved-toggle" aria-pressed="false">只看收藏</button><button id="font-toggle" aria-pressed="false">放大文字</button><button id="print-guide">列印</button></div><div class="search-ui js-only"><label for="search">搜尋城市、景點或交通</label><div class="search-row"><input id="search" type="search" placeholder="例如：格雷梅、獨木舟" autocomplete="off" enterkeyhint="search" aria-describedby="result"><button id="clear-search" aria-label="清除搜尋">清除</button></div><p id="result" role="status" aria-live="polite" aria-atomic="true">完整收錄 19 天 · 40 頁原稿</p><ol id="search-results" aria-label="搜尋結果" hidden></ol></div><nav aria-label="章節">'''+''.join(f'<a href="#slide-{n}">{e(t)}</a>' for n,t in nav)+'''</nav><p class="hint">行程可直接閱讀。<br>各頁下方可展開原始簡報。</p></aside><main id="journey" tabindex="-1"><div id="resume" class="resume" hidden><p id="resume-label"></p><a id="resume-link" href="#slide-1">繼續閱讀</a><button id="dismiss-resume" aria-label="關閉繼續閱讀提示">關閉</button></div>'''+''.join(sections)+'''<div id="empty" hidden><h2>找不到符合的行程</h2><p>試試城市、景點或交通方式，或清除搜尋看完整旅程。</p><button id="reset-search">顯示全部行程</button></div><footer>依原始 Google Slides 完整轉製 · 40 頁<br>班次、票價與入境資訊保留原稿內容及資料年份，請由參考連結確認出發時資訊。<a href="#slide-1">回到旅程開頭</a></footer></main></div><div id="notice" class="notice" role="status" aria-live="polite"></div><button id="back-top" class="js-only" hidden aria-label="回到頁首">回到頁首</button><noscript><p class="noscript-note">可直接閱讀全部行程；使用瀏覽器「在頁面中尋找」搜尋內容。</p></noscript></body></html>'''
+html='''<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fffdf8"><meta name="description" content="2027 土耳其 19 天自由行，手機也能輕鬆閱讀的每日行程、交通、住宿與美食手帖。"><meta property="og:title" content="土耳其環線 · 2027 旅行手帖"><meta property="og:description" content="19 天自由行：每日交通、景點、住宿與美食"><meta property="og:type" content="website"><meta property="og:image" content="https://nibbles724bot.github.io/TravelTurkey2027/assets/slides/01-1000.webp"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><title>土耳其環線 · 2027 旅行手帖</title><link rel="stylesheet" href="style.css"><script>document.documentElement.classList.add("js")</script><script src="app.js" defer></script></head><body><a class="skip" href="#journey">跳至行程</a><div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div><header><a class="brand" href="#slide-1">TÜRKİYE <span>2027 旅行手帖</span></a><a class="source" href="https://docs.google.com/presentation/d/1R3rRgthyyVZKir0g0Ztm9C8AtsBktX26/edit" target="_blank" rel="noopener noreferrer">原始簡報</a></header><div class="mobile-toolbar js-only"><label class="sr-only" for="jump">跳至日期或章節</label><select id="jump">'''+options+'''</select><button id="search-toggle" aria-expanded="false" aria-controls="guide-nav">搜尋</button></div><div class="layout"><aside id="guide-nav" aria-label="行程導覽"><div class="sidebar-title"><p class="eyebrow">2027 · 旅行手帖</p><p class="sidebar-heading">19 天，<br>繞一圈土耳其。</p></div><div class="search-tools js-only"><button id="saved-toggle" aria-pressed="false">只看收藏</button><button id="font-toggle" aria-pressed="false">放大文字</button></div><div class="search-ui js-only"><label for="search">搜尋城市、景點或交通</label><div class="search-row"><input id="search" type="search" placeholder="例如：格雷梅、獨木舟" autocomplete="off" enterkeyhint="search" aria-describedby="result"><button id="clear-search" aria-label="清除搜尋">清除</button></div><p id="result" role="status" aria-live="polite" aria-atomic="true">完整收錄 19 天 · 40 頁原稿</p><ol id="search-results" aria-label="搜尋結果" hidden></ol></div><nav aria-label="章節">'''+''.join(f'<a href="#slide-{n}">{e(t)}</a>' for n,t in nav)+'''</nav><p class="hint">各頁下方可展開原始簡報。</p></aside><main id="journey" tabindex="-1"><div id="resume" class="resume" hidden><p id="resume-label"></p><a id="resume-link" href="#slide-1">繼續閱讀</a><button id="dismiss-resume" aria-label="關閉繼續閱讀提示">關閉</button></div>'''+''.join(sections)+'''<div id="empty" hidden><h2>找不到符合的行程</h2><p>試試城市、景點或交通方式，或清除搜尋看完整旅程。</p><button id="reset-search">顯示全部行程</button></div><footer>依原始 Google Slides 完整轉製 · 40 頁<br>班次、票價與入境資訊保留原稿內容及資料年份，請由參考連結確認出發時資訊。<a href="#slide-1">回到旅程開頭</a></footer></main></div><div id="notice" class="notice" role="status" aria-live="polite"></div><button id="back-top" class="js-only" hidden aria-label="回到頁首">回到頁首</button><noscript><p class="noscript-note">可直接閱讀全部行程；使用瀏覽器「在頁面中尋找」搜尋內容。</p></noscript></body></html>'''
 for asset in ['style.css', 'app.js']:
     version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:10]
     html=html.replace(f'"{asset}"', f'"{asset}?v={version}"')

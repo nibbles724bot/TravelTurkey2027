@@ -154,7 +154,6 @@ const fontToggle=document.querySelector('#font-toggle');
 function setLargeText(large){document.documentElement.classList.toggle('large-text',large);fontToggle.setAttribute('aria-pressed',String(large));fontToggle.textContent=large?'標準文字':'放大文字';}
 setLargeText(storage.get('large-text',false)===true);
 fontToggle.addEventListener('click',()=>{const large=!document.documentElement.classList.contains('large-text');setLargeText(large);storage.set('large-text',large);});
-document.querySelector('#print-guide').addEventListener('click',()=>{clearSearch();window.print();});
 for(const image of document.querySelectorAll('img')) image.addEventListener('error',()=>{image.hidden=true;const fallback=document.createElement('span');fallback.className='image-error';fallback.textContent=`圖片暫時無法載入：${image.alt}。可繼續閱讀文字行程。`;image.closest('picture')?.after(fallback);},{once:true});
 search.value=new URL(location.href).searchParams.get('q') || '';
 if(search.value)openSearch(true);

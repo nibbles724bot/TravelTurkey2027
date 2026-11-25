@@ -1,7 +1,7 @@
 """Check generated guide structure, preserved source content and local assets."""
 from pathlib import Path
 from html.parser import HTMLParser
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 import json
 import re
 
@@ -41,3 +41,12 @@ for file in ['app.js','style.css']:
 assert 'Miffy' in (ROOT/'IMPROVEMENTS.md').read_text()
 assert len(re.findall(r'^\d+\. ',(ROOT/'IMPROVEMENTS.md').read_text(),re.M))==30
 print('Validated 40 pages, 19 days, 40 originals, 92 source links, all jump targets and responsive assets, 30 improvements.')
+
+map_links=[url for url in guide.links if url.startswith('https://www.google.com/maps/search/')]
+for url in map_links:
+    query=parse_qs(urlsplit(url).query)
+    assert query.get('api')==['1'] and query.get('query'),url
+assert any('Sultanahmet Köftecisi' in parse_qs(urlsplit(url).query)['query'][0] for url in map_links)
+assert any(parse_qs(urlsplit(url).query)['query'][0]=='Taipei Taiwan' for url in map_links)
+assert any(parse_qs(urlsplit(url).query)['query'][0]=='Karakoy Galata Istanbul Turkey' for url in map_links)
+print(f'Validated {len(map_links)} Google Maps search links, including restaurants, lodging areas, cities and transport endpoints.')

@@ -32,7 +32,6 @@ main{min-width:0}
 .slide{scroll-margin-top:6rem;padding-bottom:2.5rem;margin-bottom:2.5rem;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .slide-heading{margin-bottom:1.5rem}
 .slide-heading h2{font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.45;margin:.5rem 0 .75rem;color:var(--ink);font-family:system-ui,-apple-system,"PingFang TC",sans-serif;font-weight:700;text-wrap:pretty}
-.permalink{display:inline-block;font-size:.875rem;color:var(--muted);text-decoration:underline;padding:.5rem 0;min-height:44px;font-variant-numeric:tabular-nums}
 .day-label{color:var(--accent);font-size:.9375rem;font-weight:700;font-variant-numeric:tabular-nums;margin:0;display:flex;flex-wrap:wrap;gap:.5rem 1.25rem}
 .day-label span{color:var(--muted);font-size:.875rem;font-weight:500}
 h3{font-size:1.125rem;color:var(--ink);line-height:1.6;margin:0 0 .7rem;font-weight:700}
@@ -66,7 +65,6 @@ details li a{display:inline-block;padding:.4rem 0}
 .chapter{padding-bottom:2rem}
 .chapter .slide-heading{margin-bottom:1rem}
 .chapter .eyebrow{margin-bottom:.25rem}
-.chapter .permalink{display:none}
 .chapter-art{max-width:36rem}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.75rem 0}
 .stats span{font-size:.875rem;color:var(--muted)}
@@ -272,5 +270,11 @@ html:not(.js) .prep-check{display:none}
 @media(max-width:900px){.js aside{top:var(--panel-top,8rem);max-height:calc(100dvh - var(--panel-top,8rem) - env(safe-area-inset-bottom))}}
 .sidebar-heading{text-wrap:initial}
 .search-tools{display:grid;grid-template-columns:1fr 1fr}
-#print-guide{grid-column:1/-1}
-@media(max-width:900px){.search-tools{display:flex}#print-guide{grid-column:auto}}
+@media(max-width:900px){.search-tools{display:flex}}
+.city-maps{margin:2rem 0 1rem}
+.city-maps,.transport-maps{display:flex;flex-wrap:wrap;gap:.5rem .875rem}
+.city-maps h3{flex-basis:100%}
+.stay .map-link{margin-top:.5rem;margin-bottom:0}
+.day-shortcuts>.map-link{border:1.5px solid var(--stroke);border-radius:8px;background:var(--yellow);padding:.4rem .75rem;margin-bottom:0;color:var(--ink);font-weight:650}
+.transport-maps{margin-top:.75rem}
+@media print{.city-maps,.transport-maps{display:none}}
