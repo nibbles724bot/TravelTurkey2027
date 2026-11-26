@@ -93,11 +93,11 @@ def content(s):
     if n in FOOD_PAGES:
         body='<div class="food-list">'
         for title,description,place in rows(a[3:-1],3):
-            body+=f'<section><h3>{e(title)}</h3>{p(description)}'+(f'<p class="place">地點 · {e(place)}</p>' if place!='—' else '')
+            heading=e(title)
             if title not in ['必吃美食','必吃甜點','小提醒','旅館餐廳']:
                 city={9:'Istanbul',13:'Safranbolu',18:'Uchisar Cappadocia' if '烏奇沙' in place else 'Goreme Cappadocia',22:'Kahta',29:'Antalya' if '安塔利亞' in place else 'Kas Antalya',35:place_query(place)}[n]
-                body+=maps(title+' '+city+('' if 'Turkey' in city else ' Turkey'),'餐廳 Google Maps',title)
-            body+='</section>'
+                heading=maps(title+' '+city+('' if 'Turkey' in city else ' Turkey'),title,'餐廳 Google Maps：'+title)
+            body+=f'<section><h3>{heading}</h3>{p(description)}'+(f'<p class="place">地點 · {e(place)}</p>' if place!='—' else '')+'</section>'
         return body+'</div>'
     if n==38:
         body='<p class="note">原稿班次以 2026 年資料為主。</p><div class="transport-list">'

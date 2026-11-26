@@ -126,3 +126,5 @@ html:not(.js) .js-only{display:none!important}html:not(.js) aside{display:block;
 @media print{.route-map-pins{display:none}.route-stops{break-inside:avoid}.illustrated-route figcaption a{display:none}}
 
 .sight-source{color:inherit;text-decoration:underline;text-decoration-color:#c6bca9;text-underline-offset:.22em}.sight-source:hover{color:var(--blue);text-decoration-color:currentColor}
+
+.food-list h3 .map-link{font-size:inherit;font-weight:inherit;color:var(--ink);padding:0;text-decoration:underline;text-decoration-color:#c6bca9;text-underline-offset:.22em}.food-list h3 .map-link:before{color:var(--blue)}.food-list h3 .map-link:hover{color:var(--blue)}
