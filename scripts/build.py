@@ -86,7 +86,7 @@ def content(s):
         illustration='<figure class="illustrated-route"><div class="route-map-visual"><a class="route-map-image" href="assets/turkey-route-map.webp" target="_blank" rel="noopener noreferrer" aria-label="開啟完整土耳其路線大圖"><img src="assets/turkey-route-map.webp" width="1217" height="702" loading="lazy" decoding="async" alt="土耳其十九日環線插畫：由伊斯坦堡出發，經番紅花城、安卡拉、卡帕多奇亞、Kahta，沿地中海與愛琴海返回；藍色海域與米白陸地上以紅色箭頭串連城市。"></a><nav class="route-map-pins" aria-label="地圖城市行程">'+pins+'</nav></div><figcaption><span>沿著紅色路線，走一圈土耳其</span><a href="assets/turkey-route-map.webp" target="_blank" rel="noopener noreferrer">開啟大圖 ↗</a></figcaption></figure><nav aria-label="沿途城市行程"><ol class="route-stops">'+cities+'</ol></nav>'
         body=illustration+p(a[1])+'<div class="stats"><span><strong>18</strong>晚住宿</span><span><strong>11</strong>段交通</span><span><strong>3</strong>次熱氣球機會</span></div><ol class="route-list">'
         for number,route,time in rows(a[11:],3):body+=f'<li><div>{e(route)}</div><span>{e(time)}</span></li>'
-        return body+'</ol><div class="city-maps"><h3>沿途城市 Google Maps</h3>'+''.join(maps(place_query(city),city) for city in ['伊斯坦堡','番紅花城','安卡拉','格雷梅','Kahta','安塔利亞','卡什','費特希耶','Ölüdeniz','棉堡','塞爾丘克','希林傑'])+'</div>'
+        return body+'</ol>'
     if n==4:
         data=[t for t in a[1:] if t not in ['Day','日期','行程','住宿']]
         body='<ol class="overview">'
