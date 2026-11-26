@@ -104,7 +104,7 @@ def content(s):
             body+=f'<section><h3>{heading}</h3>{p(description)}'+(f'<p class="place">地點 · {e(place)}</p>' if place!='—' else '')+'</section>'
         return body+'</div>'
     if n==38:
-        body='<p class="note">原稿班次以 2026 年資料為主。</p><div class="transport-list">'
+        body='<div class="transport-list">'
         for number,route,mode,time,schedule in rows(a[6:-1],5):
             body+=f'<section><h3>{e(route)}</h3><p class="transport-meta">{e(mode)} · {e(time)}</p>{p(schedule)}'
             points=route.split(' → ')
