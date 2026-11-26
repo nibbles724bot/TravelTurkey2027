@@ -38,9 +38,10 @@ def place_query(text):
         if name in text:return CITY_QUERIES[name]+' Turkey'
     return text+' Turkey'
 
-def references(s):
-    if not s['links']: return ''
-    return '<details class="references"><summary>照片與參考連結</summary><ul>'+''.join('<li>'+link(l['text'],l['url'])+'</li>' for l in s['links'])+'</ul></details>'
+def references(s, integrated=()):
+    remaining=[item for item in s['links'] if item['url'] not in integrated]
+    if not remaining: return ''
+    return '<details class="references"><summary>照片與參考連結</summary><ul>'+''.join('<li>'+link(l['text'],l['url'])+'</li>' for l in remaining)+'</ul></details>'
 
 def day_content(s):
     items=s['paragraphs']; scenic=items.index('景點介紹'); stay=items.index('今晚住宿')
@@ -53,8 +54,12 @@ def day_content(s):
     body+='</ul></section>'
     body+='<section class="sights"><h3>這一天的行程</h3>'
     sights=items[scenic+1:region_end-1]
+    integrated=set()
     for i in range(0,len(sights),2):
-        body+=f'<section class="sight"><h4>{e(sights[i])}</h4>'
+        source=next((item for item in s['links'] if item['text']==sights[i]),None)
+        heading=link(sights[i],source['url'],'sight-source') if source else e(sights[i])
+        if source:integrated.add(source['url'])
+        body+=f'<section class="sight"><h4>{heading}</h4>'
         if not sights[i].startswith('關於'):
             source=next((l for l in s['links'] if l['text']==sights[i]),None)
             query=parse_qs(urlparse(source['url']).query).get('q',[sights[i]+' '+region])[0] if source else sights[i]+' '+region
@@ -63,7 +68,7 @@ def day_content(s):
         if i+1<len(sights):body+=p(sights[i+1])
         body+='</section>'
     body+=f'</section><div class="stay"><h3>今晚住宿</h3>{p(items[stay+1])}'+(maps(STAY_AREAS[s['number']]+' Turkey','住宿區域 Google Maps',items[stay+1]) if s['number'] in STAY_AREAS else '')+'</div>'
-    return region,body+references(s)
+    return region,body+references(s,integrated)
 
 def rows(data, width):
     assert len(data)%width == 0, (len(data),width)
