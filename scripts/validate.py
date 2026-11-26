@@ -32,7 +32,10 @@ assert len(guide.options)==40 and len(set(guide.options))==40, 'Incomplete jump 
 assert guide.days==19 and guide.originals==0
 for asset in guide.assets:assert (ROOT/asset).is_file(),f'Missing asset: {asset}'
 for slide in slides:
-    for source in slide['links']:assert source['url'] in guide.links,source['url']
+    for source in slide['links']:
+        # Matching daily sight references are replaced by one Maps title link.
+        replaced=slide['paragraphs'] and slide['paragraphs'][0].startswith('DAY') and source['text'] in slide['paragraphs']
+        if not replaced:assert source['url'] in guide.links,source['url']
     if slide['paragraphs'] and slide['paragraphs'][0].startswith('DAY'):
         mode,duration=re.match(r'交通\s*(.*?)\s*｜\s*預估\s*(.*)',slide['paragraphs'][2]).groups()
         assert mode in text and duration in text
@@ -45,7 +48,7 @@ assert len(re.findall('class="transport-summary"',(ROOT/'index.html').read_text(
 assert len(re.findall('class="travel-notes"',(ROOT/'index.html').read_text()))==19
 assert 'Miffy' in (ROOT/'IMPROVEMENTS.md').read_text()
 assert len(re.findall(r'^\d+\. ',(ROOT/'IMPROVEMENTS.md').read_text(),re.M))==30
-print('Validated 40 pages, 19 days, no slide thumbnails, 92 source links, all directory targets and local assets, 30 improvements.')
+print('Validated 40 pages, 19 days, no slide thumbnails, source references and merged sight map links, all directory targets and local assets, 30 improvements.')
 
 map_links=[url for url in guide.links if url.startswith('https://www.google.com/maps/search/')]
 assert len(map_links)==114
@@ -97,3 +100,6 @@ assert any(parse_qs(urlsplit(url).query)['query'][0]=='Sultanahmet Meydanı, Bin
 assert not any('Sultanahmet Square night' in parse_qs(urlsplit(url).query)['query'][0] for url in map_links)
 
 assert '沿途城市 Google Maps' not in markup
+
+assert not re.search(r'</h4>\s*<a class="map-link"',markup)
+assert re.search(r'<h4>\s*<a class="map-link"[^>]*>蘇丹艾哈邁德廣場夜景',markup)

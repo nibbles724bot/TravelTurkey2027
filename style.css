@@ -136,3 +136,5 @@ html:not(.js) .js-only{display:none!important}html:not(.js) aside{display:block;
 /* Keep lodging compact; the area name is the map link. */
 .stay{display:grid;grid-template-columns:5rem minmax(0,1fr);align-items:center;gap:.75rem;background:#fff8e3;border-radius:10px;padding:.75rem 1rem;margin:1.5rem 0}.stay h3{margin:0;font-size:.75rem;line-height:1.6;font-weight:550}.stay p{margin:0;min-width:0;font-size:.9375rem;line-height:1.6}.stay .map-link{padding:0;font-size:inherit;font-weight:600;color:var(--ink);text-decoration:underline;text-decoration-color:#c6bca9;text-underline-offset:.22em;line-height:1.6}.stay .map-link:before{color:var(--blue)}.stay .map-link:hover{color:var(--blue)}
 @media(max-width:600px){.stay{grid-template-columns:4rem minmax(0,1fr);gap:.6rem;padding:.65rem .85rem}.stay p{font-size:.875rem}}
+
+.sight h4 .map-link{color:var(--ink);font-size:inherit;font-weight:inherit;line-height:1.6;padding:0;text-decoration:underline;text-decoration-color:#c6bca9;text-underline-offset:.22em}.sight h4 .map-link:before{color:var(--blue)}.sight h4 .map-link:hover{color:var(--blue)}

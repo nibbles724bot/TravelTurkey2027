@@ -60,14 +60,14 @@ def day_content(s):
     integrated=set()
     for i in range(0,len(sights),2):
         source=next((item for item in s['links'] if item['text']==sights[i]),None)
-        heading=link(sights[i],source['url'],'sight-source') if source else e(sights[i])
+        heading=e(sights[i])
         if source:integrated.add(source['url'])
-        body+=f'<section class="sight"><h4>{heading}</h4>'
         if not sights[i].startswith('關於'):
             source=next((l for l in s['links'] if l['text']==sights[i]),None)
             query=parse_qs(urlparse(source['url']).query).get('q',[sights[i]+' '+region])[0] if source else sights[i]+' '+region
             destination={'蘇丹艾哈邁德廣場夜景':'Sultanahmet Meydanı, Binbirdirek, Fatih, İstanbul, Türkiye'}.get(sights[i],query+' Turkey')
-            body+=maps(destination,'Google Maps',sights[i])
+            heading=maps(destination,sights[i],'景點 Google Maps：'+sights[i])
+        body+=f'<section class="sight"><h4>{heading}</h4>'
         if i+1<len(sights):body+=p(sights[i+1])
         body+='</section>'
     stay_name=items[stay+1]
