@@ -128,3 +128,7 @@ html:not(.js) .js-only{display:none!important}html:not(.js) aside{display:block;
 .sight-source{color:inherit;text-decoration:underline;text-decoration-color:#c6bca9;text-underline-offset:.22em}.sight-source:hover{color:var(--blue);text-decoration-color:currentColor}
 
 .food-list h3 .map-link{font-size:inherit;font-weight:inherit;color:var(--ink);padding:0;text-decoration:underline;text-decoration-color:#c6bca9;text-underline-offset:.22em}.food-list h3 .map-link:before{color:var(--blue)}.food-list h3 .map-link:hover{color:var(--blue)}
+
+/* Compact itinerary rows with a stable date column and a single link. */
+.overview a{grid-template-columns:6.25rem minmax(0,1fr) 1rem;align-items:center;gap:1rem;padding:1.15rem .5rem;border-radius:10px;color:var(--ink)}.overview-date{display:grid;gap:.3rem;font-size:.75rem;line-height:1.5;color:var(--muted)}.overview-day{font-size:.8125rem;font-weight:700;color:var(--accent)}.overview-detail{display:grid;gap:.4rem;min-width:0}.overview strong{line-height:1.6}.overview-stay{font-size:.8125rem;line-height:1.5}.overview-arrow{color:var(--accent);font-size:1rem}.overview a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.overview a{grid-template-columns:5rem minmax(0,1fr) .875rem;gap:.65rem;padding:1rem .15rem}.overview strong{font-size:.9375rem}.overview-date{font-size:.6875rem}.overview-day{font-size:.75rem}.overview-stay{font-size:.75rem}}

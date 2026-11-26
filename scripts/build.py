@@ -88,7 +88,8 @@ def content(s):
         data=[t for t in a[1:] if t not in ['Day','日期','行程','住宿']]
         body='<ol class="overview">'
         for day,date,title,stay in rows(data,4):
-            body+=f'<li><a href="#slide-{day_targets[int(day)]}"><span class="overview-date">DAY {int(day):02d} · {e(date)}</span><strong>{e(title)}</strong><span class="overview-stay">住宿 · {e(stay)}</span><span class="read-day">閱讀當日行程</span></a></li>'
+            stay_label='返程' if int(day)==19 else '住宿'
+            body+=f'<li><a href="#slide-{day_targets[int(day)]}"><span class="overview-date"><span class="overview-day">DAY {int(day):02d}</span><span>{e(date)}</span></span><span class="overview-detail"><strong>{e(title)}</strong><span class="overview-stay">{stay_label} · {e(stay)}</span></span><span class="overview-arrow" aria-hidden="true">→</span></a></li>'
         return body+'</ol>'
     if n in FOOD_PAGES:
         body='<div class="food-list">'
