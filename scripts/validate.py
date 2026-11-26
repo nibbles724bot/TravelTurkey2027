@@ -4,13 +4,14 @@ from html.parser import HTMLParser
 from urllib.parse import urlsplit, parse_qs
 import json
 import re
+import hashlib
 
 ROOT = Path(__file__).resolve().parent.parent
 class Guide(HTMLParser):
     def __init__(self):
-        super().__init__();self.ids=[];self.links=[];self.assets=[];self.text=[];self.options=[];self.days=0;self.originals=0
+        super().__init__();self.ids=[];self.links=[];self.assets=[];self.text=[];self.options=[];self.days=0;self.originals=0;self.nodes=[]
     def handle_starttag(self,tag,attrs):
-        a=dict(attrs)
+        a=dict(attrs);self.nodes.append((tag,a))
         if 'id' in a:self.ids.append(a['id'])
         if tag=='a':self.links.append(a.get('href',''))
         if tag=='a' and a.get('href','').startswith('#slide-') and a['href'][1:] not in self.options:self.options.append(a['href'][1:])
@@ -38,7 +39,7 @@ for slide in slides:
         for paragraph in slide['paragraphs'][3:]:
             if paragraph in ['示意插圖','景點介紹'] or paragraph.startswith('看實景照片'):continue
             assert paragraph in text,(slide['number'],paragraph)
-for file in ['app.js','style.css']:
+for file in ['app.js','style.css','guide-core.js']:
     assert re.search(rf'{re.escape(file)}\?v=[a-f0-9]{{10}}',(ROOT/'index.html').read_text())
 assert len(re.findall('class="transport-summary"',(ROOT/'index.html').read_text()))==19
 assert len(re.findall('class="travel-notes"',(ROOT/'index.html').read_text()))==19
@@ -47,6 +48,7 @@ assert len(re.findall(r'^\d+\. ',(ROOT/'IMPROVEMENTS.md').read_text(),re.M))==30
 print('Validated 40 pages, 19 days, no slide thumbnails, 92 source links, all directory targets and local assets, 30 improvements.')
 
 map_links=[url for url in guide.links if url.startswith('https://www.google.com/maps/search/')]
+assert len(map_links)==127
 for url in map_links:
     query=parse_qs(urlsplit(url).query)
     assert query.get('api')==['1'] and query.get('query'),url
@@ -60,3 +62,27 @@ assert '<select' not in markup and 'id="trip-menu"' in markup
 assert 'save-day' not in markup and 'share-day' not in markup and 'saved-toggle' not in markup
 assert markup.count('https://docs.google.com/presentation/d/1R3rRgthyyVZKir0g0Ztm9C8AtsBktX26/edit')==1
 print('Verified custom directory, split transport summaries, removed collection/share controls and slide thumbnails.')
+
+# Verify generated controls, fallback paths, version accuracy and payload budget.
+for tag,attrs in guide.nodes:
+    for attribute in ['aria-controls','aria-labelledby','aria-describedby']:
+        for identifier in attrs.get(attribute,'').split():assert identifier in guide.ids,(attribute,identifier)
+    if tag=='button':assert attrs.get('type')=='button'
+    if tag=='a' and attrs.get('target')=='_blank':assert {'noopener','noreferrer'}<=set(attrs.get('rel','').split())
+    if tag=='article':assert attrs.get('data-kind') in {'chapter','day','food','practical'}
+    if tag=='img':assert attrs.get('alt') and attrs.get('width') and attrs.get('height')
+menu_targets=[attrs['href'] for tag,attrs in guide.nodes if tag=='a' and 'data-menu-item' in attrs]
+assert len(menu_targets)==40 and len(set(menu_targets))==40
+assert {attrs['data-search-kind'] for tag,attrs in guide.nodes if 'data-search-kind' in attrs}=={'all','day','food','practical'}
+assert {attrs['data-menu-kind'] for tag,attrs in guide.nodes if 'data-menu-kind' in attrs}=={'all','day','food','practical'}
+for asset in ['style.css','app.js','guide-core.js','assets/favicon.svg','assets/rabbit-trip.svg']:
+    version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:10]
+    assert f'{asset}?v={version}' in markup,asset
+assert len(re.findall(r'^\d+\. ',(ROOT/'OPTIMIZATIONS-50.md').read_text(),re.M))==50
+assert 'onerror="document.documentElement.classList.remove' in markup
+assert 'id="print-guide"' not in markup and 'class="permalink"' not in markup
+assert '行程可直接閱讀。' not in markup
+payload_files={'index.html','style.css','app.js','guide-core.js','assets/rabbit-trip.svg','assets/favicon.svg'}
+payload=sum((ROOT/asset).stat().st_size for asset in payload_files)
+assert payload<300*1024,f'Initial payload over budget: {payload}'
+print(f'Verified 50 improvements, ARIA targets, 40 unique directory items, exact asset versions and {payload/1024:.1f} KiB initial payload.')
