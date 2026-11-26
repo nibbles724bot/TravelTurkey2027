@@ -90,7 +90,15 @@ def content(s):
         cities=''.join(f'<li><a href="#slide-{target}"><span class="route-stop-number">{i:02d}</span><span><strong>{e(city)}</strong><small>{e(day)}</small></span><span aria-hidden="true">↗</span></a></li>' for i,(city,day,target,x,y) in enumerate(stops,1))
         illustration='<figure class="illustrated-route"><div class="route-map-visual"><a class="route-map-image" href="assets/turkey-route-map.webp" target="_blank" rel="noopener noreferrer" aria-label="開啟完整土耳其路線大圖"><img src="assets/turkey-route-map.webp" width="1217" height="702" loading="lazy" decoding="async" alt="土耳其十九日環線插畫：由伊斯坦堡出發，經番紅花城、安卡拉、卡帕多奇亞、Kahta，沿地中海與愛琴海返回；藍色海域與米白陸地上以紅色箭頭串連城市。"></a><nav class="route-map-pins" aria-label="地圖城市行程">'+pins+'</nav></div><figcaption><span>沿著紅色路線，走一圈土耳其</span><a href="assets/turkey-route-map.webp" target="_blank" rel="noopener noreferrer">開啟大圖 ↗</a></figcaption></figure><nav aria-label="沿途城市行程"><ol class="route-stops">'+cities+'</ol></nav>'
         body=illustration+p(a[1])+'<div class="stats"><span><strong>18</strong>晚住宿</span><span><strong>11</strong>段交通</span><span><strong>3</strong>次熱氣球機會</span></div><ol class="route-list">'
-        for number,route,time in rows(a[11:],3):body+=f'<li><div>{e(route)}</div><span>{e(time)}</span></li>'
+        for number,route,time in rows(a[11:],3):
+            match=re.match(r'(.*?)（(.*?)）$',route)
+            path,mode=match.groups() if match else (route,'計程車＋飛機')
+            parts=path.split(' → ')
+            origin,destination=parts[0],parts[-1]
+            via='途經 '+' → '.join(parts[1:-1]) if len(parts)>2 else ''
+            if number=='5':via='計程車至 Adıyaman 機場，再轉機'
+            duration=time.replace('1h15','1 小時 15 分').replace('h',' 小時')
+            body+=f'<li aria-label="{e(route)}，{e(duration)}"><span class="route-step" aria-hidden="true">{int(number):02d}</span><div class="route-leg"><div class="route-endpoints"><strong>{e(origin)}</strong><span class="route-direction" aria-hidden="true">→</span><strong>{e(destination)}</strong></div><div class="route-leg-meta"><span class="route-mode">{e(mode)}</span>'+(f'<span class="route-via">{e(via)}</span>' if via else '')+f'</div></div><span class="route-duration">{e(duration)}</span></li>'
         return body+'</ol>'
     if n==4:
         data=[t for t in a[1:] if t not in ['Day','日期','行程','住宿']]

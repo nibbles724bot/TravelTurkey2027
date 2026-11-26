@@ -103,3 +103,6 @@ assert '沿途城市 Google Maps' not in markup
 
 assert not re.search(r'</h4>\s*<a class="map-link"',markup)
 assert re.search(r'<h4>\s*<a class="map-link"[^>]*>蘇丹艾哈邁德廣場夜景',markup)
+
+assert markup.count('class="route-step"')==11
+assert markup.count('class="route-duration"')==11
