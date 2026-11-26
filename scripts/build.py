@@ -70,7 +70,10 @@ def day_content(s):
             body+=maps(destination,'Google Maps',sights[i])
         if i+1<len(sights):body+=p(sights[i+1])
         body+='</section>'
-    body+=f'</section><div class="stay"><h3>今晚住宿</h3>{p(items[stay+1])}'+(maps(STAY_AREAS[s['number']]+' Turkey','住宿區域 Google Maps',items[stay+1]) if s['number'] in STAY_AREAS else '')+'</div>'
+    stay_name=items[stay+1]
+    stay_heading='今晚住宿' if s['number'] in STAY_AREAS else '過夜安排'
+    stay_link=maps(STAY_AREAS[s['number']]+' Turkey',stay_name,'住宿區域 Google Maps：'+stay_name) if s['number'] in STAY_AREAS else e(stay_name)
+    body+=f'</section><section class="stay" aria-label="{stay_heading}"><h3>{stay_heading}</h3><p>{stay_link}</p></section>'
     return region,body+references(s,integrated)
 
 def rows(data, width):
