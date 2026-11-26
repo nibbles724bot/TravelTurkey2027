@@ -53,7 +53,9 @@ def day_content(s):
     summary=items[2]
     mode,duration=re.match(r'交通\s*(.*?)\s*｜\s*預估\s*(.*)',summary).groups()
     body=f'<section class="travel-info" id="transport-{s["number"]}" tabindex="-1" aria-label="交通與時間"><h3>交通與時間</h3><dl class="transport-summary"><div><dt>交通方式</dt><dd>{e(mode)}</dd></div><div><dt>預估時間</dt><dd>{e(duration)}</dd></div></dl><ul class="travel-notes">'
-    for note in items[3:scenic]:body+=f'<li>{e(note)}</li>'
+    for note in items[3:scenic]:
+        note_label=('航班' if note.startswith(('土航 TK','另一選擇 TK')) else '進城交通' if note.startswith('機場 → 舊城') else '路線方案' if note.startswith('方案') else '行程順序' if note.startswith(('順序：','路線：')) else '交通與提醒')
+        body+=f'<li><span class="travel-note-label">{note_label}</span><span class="travel-note-text">{e(note)}</span></li>'
     body+='</ul></section>'
     body+='<section class="sights"><h3>這一天的行程</h3>'
     sights=items[scenic+1:region_end-1]

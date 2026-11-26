@@ -250,7 +250,9 @@
   },{passive:true});
   function updateStickyOffsets() {
     const header=document.querySelector('header');const toolbar=$('.mobile-toolbar');
-    const bottom=header.offsetHeight+(getComputedStyle(toolbar).display==='none'?0:toolbar.offsetHeight);
+    const headerStyle=getComputedStyle(header);
+    const headerHeight=['sticky','fixed'].includes(headerStyle.position)?header.offsetHeight:0;
+    const bottom=headerHeight+(getComputedStyle(toolbar).display==='none'?0:toolbar.offsetHeight);
     document.documentElement.style.setProperty('--panel-top',`${bottom}px`);document.documentElement.style.setProperty('--anchor-offset',`${bottom+16}px`);
     const nextBand=Math.ceil(Math.min(bottom+20,innerHeight*.45));if(readingBand!==nextBand){readingBand=nextBand;createObserver();}updateProgress();
   }
