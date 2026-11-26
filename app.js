@@ -2,10 +2,11 @@
 const slides = [...document.querySelectorAll('.slide')];
 const search = document.querySelector('#search');
 const result = document.querySelector('#result');
-const jump = document.querySelector('#jump');
+const jumpToggle = document.querySelector('#jump-toggle');
+const tripMenu = document.querySelector('#trip-menu');
+const menuLinks = [...tripMenu.querySelectorAll('a[href^="#slide-"]')];
 const panel = document.querySelector('#guide-nav');
 const toggle = document.querySelector('#search-toggle');
-const savedToggle = document.querySelector('#saved-toggle');
 const resultList = document.querySelector('#search-results');
 const clearButton = document.querySelector('#clear-search');
 const readProgress = document.querySelector('#reading-progress');
@@ -19,9 +20,6 @@ const storage = {
   get(key, fallback) { try { return JSON.parse(localStorage.getItem(`turkey-${key}`)) ?? fallback; } catch { return fallback; } },
   set(key, value) { try { localStorage.setItem(`turkey-${key}`, JSON.stringify(value)); return true; } catch { return false; } }
 };
-const storedSaved = storage.get('saved', []);
-const saved = new Set((Array.isArray(storedSaved) ? storedSaved : []).filter(id => slides.some(slide => slide.id === id && slide.classList.contains('day'))));
-let onlySaved = false;
 let current = slides[0];
 let noticeTimer;
 function announce(message) { notice.textContent = message; notice.classList.add('visible'); clearTimeout(noticeTimer); noticeTimer = setTimeout(() => notice.classList.remove('visible'), 3500); }
@@ -54,20 +52,20 @@ function filterSlides({sync=true}={}) {
   const query = search.value.trim(); const terms=canonical(query).split(/\s+/).filter(Boolean);
   const matches=[];
   for (const slide of slides) {
-    slide.hidden = (onlySaved && !saved.has(slide.id)) || !terms.every(term => index.get(slide).includes(term));
+    slide.hidden = !terms.every(term => index.get(slide).includes(term));
     if (!slide.hidden) matches.push(slide);
   }
-  result.textContent = query || onlySaved ? `找到 ${matches.length} 頁${onlySaved ? '收藏' : '相關'}內容` : '完整收錄 19 天 · 40 頁原稿';
-  clearButton.disabled = !query && !onlySaved;
+  result.textContent = query ? `找到 ${matches.length} 頁相關內容` : '完整收錄 19 天 · 40 頁原稿';
+  clearButton.disabled = !query;
   document.querySelector('#empty').hidden = matches.length !== 0;
-  resultList.replaceChildren(); resultList.hidden = !query && !onlySaved;
+  resultList.replaceChildren(); resultList.hidden = !query;
   for (const slide of matches) {
     const li=document.createElement('li');const a=document.createElement('a');a.href=`#${slide.id}`;a.textContent=slide.querySelector('h1,h2').textContent;li.append(a);resultList.append(li);
   }
   highlight(query);
   if (sync) syncQuery();
 }
-function clearSearch() { search.value = ''; onlySaved=false;savedToggle.setAttribute('aria-pressed','false');filterSlides(); }
+function clearSearch() { search.value = ''; filterSlides(); }
 function openSearch(open) {
   panel.classList.toggle('is-open', open);toggle.setAttribute('aria-expanded', String(open));toggle.textContent = open ? '關閉' : '搜尋';
   if (open) search.focus({preventScroll: true});
@@ -76,28 +74,30 @@ search.addEventListener('input', () => filterSlides());
 clearButton.addEventListener('click', () => { clearSearch(); search.focus(); });
 document.querySelector('#reset-search').addEventListener('click', () => { clearSearch(); openSearch(true); });
 toggle.addEventListener('click', () => openSearch(toggle.getAttribute('aria-expanded') !== 'true'));
-savedToggle.addEventListener('click',()=>{onlySaved=!onlySaved;savedToggle.setAttribute('aria-pressed',String(onlySaved));filterSlides();});
-function updateSaved() {
-  for (const button of document.querySelectorAll('.save-day')) { const selected=saved.has(button.dataset.id);button.setAttribute('aria-pressed',String(selected));button.textContent=selected?'已收藏':'收藏這一天'; }
-  savedToggle.textContent=`只看收藏${saved.size ? ` (${saved.size})` : ''}`;
+function updateJump(slide) {
+  const date=slide.querySelector('.day-label');
+  document.querySelector('#jump-label').textContent=date ? date.childNodes[0].textContent.trim() : '旅程目錄';
+  document.querySelector('#jump-subtitle').textContent=slide.querySelector('h1,h2').textContent;
+  for(const anchor of menuLinks){if(anchor.hash===`#${slide.id}`)anchor.setAttribute('aria-current','page');else anchor.removeAttribute('aria-current');}
 }
-for (const button of document.querySelectorAll('.save-day')) button.addEventListener('click',()=>{
-  if (saved.has(button.dataset.id)) saved.delete(button.dataset.id); else saved.add(button.dataset.id);
-  const persisted=storage.set('saved',[...saved]);updateSaved();if (onlySaved) filterSlides();announce(persisted?'已更新收藏，保存在此裝置':'已更新收藏，本次瀏覽期間有效');
+let menuNavigating=false;
+function closeMenu(){if(tripMenu.open)tripMenu.close();}
+jumpToggle.addEventListener('click',()=>{
+  openSearch(false);tripMenu.showModal();
+  const active=tripMenu.querySelector('[aria-current="page"]');
+  if(active)requestAnimationFrame(()=>active.scrollIntoView({block:'center',behavior:'instant'}));
 });
-for (const button of document.querySelectorAll('.share-day')) button.addEventListener('click',async()=>{
-  const url=new URL(location.href);url.search='';url.hash=button.dataset.id;
-  try { await navigator.clipboard.writeText(url.href);announce('已複製當日連結'); }
-  catch { const field=document.createElement('input');field.value=url.href;field.readOnly=true;field.className='share-fallback';button.after(field);field.focus();field.select();announce('請複製下方選取的連結');field.addEventListener('blur',()=>field.remove(),{once:true}); }
-});
+document.querySelector('#close-menu').addEventListener('click',closeMenu);
+tripMenu.addEventListener('click',event=>{if(event.target===tripMenu){const rect=tripMenu.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)closeMenu();}});
+tripMenu.addEventListener('close',()=>{if(!menuNavigating)jumpToggle.focus({preventScroll:true});menuNavigating=false;});
+for(const anchor of menuLinks)anchor.addEventListener('click',()=>{menuNavigating=true;clearSearch();closeMenu();});
 function navigateToHash({focus=true}={}) {
   let id;try{id=decodeURIComponent(location.hash.slice(1));}catch{return;}const target=document.getElementById(id);if (!target) return;
   const article=target.closest('.slide');if (article?.hidden) clearSearch();
   openSearch(false);
-  if (article && [...jump.options].some(option => option.value === article.id)) jump.value=article.id;
-  if (focus) target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
+  if (article) updateJump(article);
+  updateStickyOffsets();if (focus) target.focus({preventScroll:true});target.scrollIntoView({block:'start',behavior:'instant'});
 }
-jump.addEventListener('change',()=>{ const id=jump.value;clearSearch();openSearch(false);if(location.hash===`#${id}`)navigateToHash();else location.hash=id; });
 window.addEventListener('hashchange',()=>navigateToHash());
 document.addEventListener('click',event=>{
   const anchor=event.target.closest('a[href^="#"]');if(!anchor)return;
@@ -116,7 +116,7 @@ document.addEventListener('keydown',event=>{
 });
 const sectionLinks=[...document.querySelectorAll('aside nav a')];
 function setCurrent(slide){
-  current=slide;jump.value=slide.id;
+  current=slide;updateJump(slide);
   const at=slides.indexOf(slide);const active=sectionLinks.filter(a=>slides.indexOf(document.querySelector(a.hash))<=at).at(-1);
   for(const anchor of sectionLinks){if(anchor===active)anchor.setAttribute('aria-current','location');else anchor.removeAttribute('aria-current');}
   if(slide.classList.contains('day'))storage.set('resume',{id:slide.id,title:slide.querySelector('h2').textContent});
@@ -157,5 +157,5 @@ fontToggle.addEventListener('click',()=>{const large=!document.documentElement.c
 for(const image of document.querySelectorAll('img')) image.addEventListener('error',()=>{image.hidden=true;const fallback=document.createElement('span');fallback.className='image-error';fallback.textContent=`圖片暫時無法載入：${image.alt}。可繼續閱讀文字行程。`;image.closest('picture')?.after(fallback);},{once:true});
 search.value=new URL(location.href).searchParams.get('q') || '';
 if(search.value)openSearch(true);
-filterSlides({sync:false});updateSaved();updatePrep();updateProgress();
-if(location.hash && !search.value)navigateToHash({focus:false});
+filterSlides({sync:false});updatePrep();updateProgress();
+if(location.hash && !search.value){navigateToHash({focus:false});window.addEventListener('load',()=>navigateToHash({focus:false}),{once:true});}
