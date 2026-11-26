@@ -23,7 +23,7 @@
   const records = slides.map((slide, order) => {
     const title = slide.querySelector('h1,h2').textContent.trim();
     const meta = slide.querySelector('.day-label')?.textContent.trim() || slide.dataset.kindLabel;
-    const parts = [...slide.querySelectorAll('.travel-notes li,.sight p,.food-list p,.transport-list p,.stay p,.chapter-summary')].map(el=>el.textContent.trim());
+    const parts = [...slide.querySelectorAll('.travel-notes li,.sight p,.food-list p,.transport-list p,.stay p,.chapter-summary,.travel-advisory p,.travel-advisory li')].map(el=>el.textContent.trim());
     return {id:slide.id, element:slide, order, title:core.normalize(title), titleText:title, meta:core.normalize(meta), metaText:meta, kind:slide.dataset.kind, kindLabel:slide.dataset.kindLabel, search:core.normalize(slide.dataset.search), parts};
   });
   const menuRecords = menuLinks.map((link, order) => {

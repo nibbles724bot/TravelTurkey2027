@@ -263,3 +263,9 @@ html:not(.js) .js-only{display:none!important}html:not(.js) aside{display:block;
  .route-duration{grid-column:2;justify-self:start;font-size:.75rem;padding:.1rem .5rem;margin-top:.15rem}
  .route-leg-meta{font-size:.75rem;gap:.25rem .6rem}
 }
+
+/* Dated official travel guidance, separate from the preparation checklist. */
+.travel-advisory{border:1px solid #e9d99d;border-top:4px solid #e8c04f;border-radius:12px;padding:1.5rem;margin:0 0 2rem;background:#fffaf0}
+.advisory-heading{margin-bottom:1rem}.advisory-level{display:inline-block;color:#7a5b12;background:#ffedaf;border-radius:5px;padding:.2rem .6rem;font-size:.8125rem;font-weight:650;margin-bottom:.75rem}.advisory-heading h3{font-size:1.25rem;margin:0;line-height:1.5}
+.travel-advisory p,.travel-advisory li{max-width:65ch;line-height:1.85}.travel-advisory h4{font-size:.9375rem;margin:1.25rem 0 .5rem}.travel-advisory ul{padding-left:1.25rem;margin:0 0 1rem}.travel-advisory li+li{margin-top:.65rem}.travel-advisory .advisory-date{font-size:.75rem;color:var(--muted);margin:1.25rem 0 .25rem}.advisory-links{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem}.advisory-links a{display:inline-flex;align-items:center;min-height:44px;font-size:.8125rem}
+@media(max-width:600px){.travel-advisory{padding:1.1rem}.advisory-heading h3{font-size:1.125rem}.travel-advisory p,.travel-advisory li{font-size:.9375rem}.advisory-links{gap:0 1rem}}

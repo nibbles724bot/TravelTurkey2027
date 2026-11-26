@@ -106,3 +106,10 @@ assert re.search(r'<h4>\s*<a class="map-link"[^>]*>蘇丹艾哈邁德廣場夜�
 
 assert markup.count('class="route-step"')==11
 assert markup.count('class="route-duration"')==11
+
+# Advisory is dated, sourced, region-specific and searchable.
+advisory=json.loads((ROOT/'travel-advisory.json').read_text())
+assert advisory['source'] in guide.links and advisory['registration'] in guide.links
+assert 'travel-advisory' in guide.ids and 'advisory-title' in guide.ids
+for key in ['title','summary','reason','regions','documents','actions']:assert advisory[key] in text
+assert any(tag=='article' and attrs.get('id')=='slide-39' and advisory['title'] in attrs.get('data-search','') for tag,attrs in guide.nodes)

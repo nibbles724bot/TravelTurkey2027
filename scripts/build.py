@@ -8,6 +8,7 @@ from html import escape as e
 
 ROOT = Path(__file__).resolve().parent.parent
 slides = json.loads((ROOT / 'slides.json').read_text())
+advisory = json.loads((ROOT / 'travel-advisory.json').read_text())
 days = [s for s in slides if s['paragraphs'] and s['paragraphs'][0].startswith('DAY')]
 FOOD_PAGES={9,13,18,22,29,35}
 KIND_LABELS={'day':'每日行程','food':'美食','practical':'交通與準備','chapter':'旅程與城市'}
@@ -124,7 +125,7 @@ def content(s):
             body+='<div class="transport-maps">'+maps(place_query(points[0]),'出發地 Google Maps',points[0])+maps(place_query(points[-1]),'目的地 Google Maps',points[-1])+'</div></section>'
         return body+'</div>'+p(a[-1])
     if n==39:
-        body='<div class="prep-list">'
+        body=f'<section class="travel-advisory" id="travel-advisory" aria-labelledby="advisory-title"><div class="advisory-heading"><span class="advisory-level">{e(advisory["level"])}</span><h3 id="advisory-title">{e(advisory["title"])}</h3></div>{p(advisory["summary"])}<h4>調升原因</h4>{p(advisory["reason"])}<h4>旅行時留意</h4><ul>'+''.join(f'<li>{e(advisory[key])}</li>' for key in ['regions','documents','actions'])+f'</ul><p class="advisory-date">公告更新：<time datetime="{advisory["updated"]}">{advisory["updated"]}</time> · 查核：<time datetime="{advisory["checked"]}">{advisory["checked"]}</time></p><div class="advisory-links">'+link('外交部旅遊警示原文',advisory['source'])+link('旅外國人動態登錄',advisory['registration'])+'</div></section><div class="prep-list">'
         for number,title,text in rows(a[1:],3):body+=f'<section class="prep-item"><label><input class="prep-check" type="checkbox" data-key="prep-{number}"><span>{e(title)}</span></label>{p(text)}</section>'
         body+='<p id="prep-progress" role="status">已完成 0 / 4 項</p><button id="reset-prep" class="js-only">重設準備清單</button>'
         return body+'</div>'
@@ -135,7 +136,7 @@ def content(s):
 sections=[]
 for s in slides:
     n=s['number']; a=s['paragraphs']; is_day=s in days; cover=not a
-    search=' '.join([s['title']]+a)
+    search=' '.join([s['title']]+a+(list(advisory.values()) if n==39 else []))
     attrs=f'id="slide-{n}" class="slide {"day" if is_day else "chapter" if cover else "reference-page"}" aria-labelledby="title-{n}" tabindex="-1" data-kind="{page_kind(n)}" data-kind-label="{KIND_LABELS[page_kind(n)]}" data-search="{e(search,quote=True)}"'
     if n==1:
         sections.append(f'<article {attrs}><div class="hero-art"><img src="assets/rabbit-trip.svg" alt="穿著橘色衣服的小白兔帶著藍色行李箱，準備熱氣球旅行" width="900" height="600" fetchpriority="high"></div><div class="hero-copy"><p class="eyebrow">2027.09.24 — 10.12</p><h1 id="title-1">土耳其環線<br>19 天的小旅行</h1><p>從伊斯坦堡的老街，到卡帕多奇亞的天空，沿著地中海，一路走回愛琴海。</p><a class="primary" href="#slide-4">查看 19 天行程</a><a class="secondary" href="#slide-6">從第一天開始</a></div></article>')
