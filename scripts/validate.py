@@ -90,3 +90,7 @@ print(f'Verified 50 improvements, ARIA targets, 40 unique directory items, exact
 assert markup.count('class="route-pin"')==10
 assert 'class="route-stops"' in markup
 assert 'loading="lazy" decoding="async"' in markup
+
+# The first-night square must use its place name, not the source image search.
+assert any(parse_qs(urlsplit(url).query)['query'][0]=='Sultanahmet Meydanı, Binbirdirek, Fatih, İstanbul, Türkiye' for url in map_links)
+assert not any('Sultanahmet Square night' in parse_qs(urlsplit(url).query)['query'][0] for url in map_links)

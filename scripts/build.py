@@ -58,7 +58,8 @@ def day_content(s):
         if not sights[i].startswith('關於'):
             source=next((l for l in s['links'] if l['text']==sights[i]),None)
             query=parse_qs(urlparse(source['url']).query).get('q',[sights[i]+' '+region])[0] if source else sights[i]+' '+region
-            body+=maps(query+' Turkey','Google Maps',sights[i])
+            destination={'蘇丹艾哈邁德廣場夜景':'Sultanahmet Meydanı, Binbirdirek, Fatih, İstanbul, Türkiye'}.get(sights[i],query+' Turkey')
+            body+=maps(destination,'Google Maps',sights[i])
         if i+1<len(sights):body+=p(sights[i+1])
         body+='</section>'
     body+=f'</section><div class="stay"><h3>今晚住宿</h3>{p(items[stay+1])}'+(maps(STAY_AREAS[s['number']]+' Turkey','住宿區域 Google Maps',items[stay+1]) if s['number'] in STAY_AREAS else '')+'</div>'
