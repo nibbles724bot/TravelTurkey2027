@@ -48,7 +48,8 @@ assert len(re.findall(r'^\d+\. ',(ROOT/'IMPROVEMENTS.md').read_text(),re.M))==30
 print('Validated 40 pages, 19 days, no slide thumbnails, 92 source links, all directory targets and local assets, 30 improvements.')
 
 map_links=[url for url in guide.links if url.startswith('https://www.google.com/maps/search/')]
-assert len(map_links)==127
+assert len(map_links)==126
+assert 'https://goo.gl/maps/FVRjnF1j5tXco4Ma9' in guide.links
 for url in map_links:
     query=parse_qs(urlsplit(url).query)
     assert query.get('api')==['1'] and query.get('query'),url

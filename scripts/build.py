@@ -28,6 +28,9 @@ def link(label, url, cls=''):
 def maps(query, label='Google Maps', context=''):
     """Link to a named-place search, without claiming a verified address."""
     url='https://www.google.com/maps/search/?api=1&query='+quote(query)
+    if query.startswith('Karaköy Güllüoğlu '):
+        # Store link published on the restaurant's official contact page.
+        url='https://goo.gl/maps/FVRjnF1j5tXco4Ma9'
     return f'<a class="map-link" href="{e(url,quote=True)}" target="_blank" rel="noopener noreferrer">{e(label)}<span class="sr-only">：{e(context or query)}（另開分頁）</span></a>'
 
 STAY_AREAS={6:'Sultanahmet Istanbul',7:'Sultanahmet Istanbul',8:'Sultanahmet Istanbul',11:'Safranbolu old town',12:'Safranbolu',14:'Goreme',16:'Goreme',17:'Goreme',19:'Kahta',21:'Kahta',24:'Kaleici Antalya',26:'Kas Antalya',27:'Kas Antalya',28:'Oludeniz Fethiye',31:'Pamukkale village',32:'Selcuk',34:'Karakoy Galata Istanbul'}
