@@ -57,7 +57,7 @@ assert any(parse_qs(urlsplit(url).query)['query'][0]=='Karakoy Galata Istanbul T
 print(f'Validated {len(map_links)} Google Maps search links, including restaurants, lodging areas, cities and transport endpoints.')
 
 markup=(ROOT/'index.html').read_text()
-assert markup.count('<img ')==1 and 'assets/slides/' not in markup
+assert markup.count('<img ')==2 and 'assets/slides/' not in markup
 assert '<select' not in markup and 'id="trip-menu"' in markup
 assert 'save-day' not in markup and 'share-day' not in markup and 'saved-toggle' not in markup
 assert markup.count('https://docs.google.com/presentation/d/1R3rRgthyyVZKir0g0Ztm9C8AtsBktX26/edit')==1
@@ -75,7 +75,7 @@ menu_targets=[attrs['href'] for tag,attrs in guide.nodes if tag=='a' and 'data-m
 assert len(menu_targets)==40 and len(set(menu_targets))==40
 assert {attrs['data-search-kind'] for tag,attrs in guide.nodes if 'data-search-kind' in attrs}=={'all','day','food','practical'}
 assert {attrs['data-menu-kind'] for tag,attrs in guide.nodes if 'data-menu-kind' in attrs}=={'all','day','food','practical'}
-for asset in ['style.css','app.js','guide-core.js','assets/favicon.svg','assets/rabbit-trip.svg']:
+for asset in ['style.css','app.js','guide-core.js','assets/favicon.svg','assets/rabbit-trip.svg','assets/turkey-route-map.webp']:
     version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:10]
     assert f'{asset}?v={version}' in markup,asset
 assert len(re.findall(r'^\d+\. ',(ROOT/'OPTIMIZATIONS-50.md').read_text(),re.M))==50
@@ -86,3 +86,7 @@ payload_files={'index.html','style.css','app.js','guide-core.js','assets/rabbit-
 payload=sum((ROOT/asset).stat().st_size for asset in payload_files)
 assert payload<300*1024,f'Initial payload over budget: {payload}'
 print(f'Verified 50 improvements, ARIA targets, 40 unique directory items, exact asset versions and {payload/1024:.1f} KiB initial payload.')
+
+assert markup.count('class="route-pin"')==10
+assert 'class="route-stops"' in markup
+assert 'loading="lazy" decoding="async"' in markup
